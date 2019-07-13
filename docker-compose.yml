@@ -1,0 +1,89 @@
+version: '3.5'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  grafana:
+    hostname: grafana
+    container_name: grafana
+    image: grafana/grafana:6.2.5
+    ports:
+      - "3000:3000"
+    volumes: 
+      - ./grafana/plugins:/var/lib/grafana/plugins
+    networks:
+      backend:
+    depends_on: 
+      - kairosdb
+  kairosdb:
+    hostname: kairosdb
+    container_name: kairosdb
+    image: inscopemetrics/kairosdb-extensions:2.1.7
+    ports: 
+      - "8082:8080"
+    networks:
+      backend:
+    depends_on: 
+      - cassandra
+  cassandra:
+    hostname: cassandra
+    container_name: cassandra
+    image: cassandra:3.11
+    ports:
+      - "7000:7000"
+      - "9042:9042"
+    networks:
+      backend:
+  cagg:
+    hostname: cagg
+    container_name: cagg
+    image: arpnetworking/cluster-aggregator:1.7.5
+    ports:
+      - "7066:7066"
+      - "7065:7065"
+    volumes: 
+      - ./cagg/config:/opt/cluster-aggregator/config
+    depends_on: 
+      - kairosdb    
+    networks:
+      - backend
+  mportal:
+    hostname: mportal
+    container_name: mportal
+    image: arpnetworking/metrics-portal:0.9.12
+    ports:
+      - "4111:9000"
+      - "8081:8080"
+    environment:
+      - METRICS_PORTAL_CONFIG=-Dconfig.file="/opt/metrics-portal/config/custom.conf"
+    volumes: 
+      - ./mportal/config:/opt/metrics-portal/config
+    networks:
+      backend:
+    depends_on:
+      - mad
+  mad:
+    hostname: mad
+    container_name: mad
+    ports:
+      - "7090:7090"
+      - "8125:8125/udp"
+    image: arpnetworking/mad:1.12.1
+    # image: cch-mad
+    restart: always
+    networks:
+      backend:
+    environment:
+      - DEPLOY_CATEGORY=infra
+      - DEPLOY_TYPE=infra-mad
+      - DEPLOY_TYPE_NAME=mad
+    volumes:
+      - ./mad/config:/opt/mad/config
+    depends_on: 
+      - cagg
+    labels:
+      com.smartsheet.dev.deployCategory: infra
+      com.smartsheet.dev.deployType: infra-mad
+      com.smartsheet.dev.deployTypeName: mad
