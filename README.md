@@ -6,6 +6,10 @@ To provide a [`Metrics Aggregator Daemon`](https://github.com/ArpNetworking/metr
 
 Implementation of the solution is based on docker and to be used by `docker-compose`.
 
+
+
+![architecture](./img/mad_for_dev.png)
+
 ## Caution
 
 Not suitable for production use. No metrics data is retained. No high availability. Dashboard and data source configuration are not persisted.
