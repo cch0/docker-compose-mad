@@ -69,6 +69,26 @@ Grafana has had Kairosdb plugin installed. All is left is to configure data sour
 ![kairosdb datasource](./img/grafana_datasource_kairosdb.png)
 
 
+# Integration With Spring Boot Application
 
+In the `application.yaml` file, enable statsd metrics.
 
+```
+management:
+  metrics:
+    export:
+      statsd:
+        enabled: true
+        flavor: datadog
+        host: "localhost"
+        port: 8125
+      simple:
+        enabled: false
+```
+
+In order for MAD to correctly ingest metrics, the following 3 tags must be present in the metric.
+
+* cluster: value of `monitoringCluster` variable configured in [config.conf](./mad/config/config.conf), default is "mad"
+* service: name of your service
+* host: localhost or something similar
 
